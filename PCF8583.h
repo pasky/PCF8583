@@ -45,6 +45,20 @@
       pcf.set_time();
 
 
+   To use timer-based interrupts; assuming INT line going to digipin3:
+
+
+      void timer_handler(void) {
+        Serial.println("got interrupt!");
+	// clear the interrupt signal
+	pcf.ack_timer();
+      }
+      attachInterrupt(1, timer_handler, FALLING);
+
+      // get an interrupt every hour at the 20th minute (XXX: Except
+      // current hour, when you will get it in t+20minutes).
+      pcf.set_timer(RTC_TIMER_MINS, 20);
+
 */
 
 #ifndef PCF8583_H
@@ -52,6 +66,15 @@
 
 #include <WProgram.h>
 #include <../Wire/Wire.h>
+
+enum PCF8583_timer {
+    RTC_TIMER_NONE = 0,
+    RTC_TIMER_100S = 1,
+    RTC_TIMER_SECS = 2,
+    RTC_TIMER_MINS = 3,
+    RTC_TIMER_HOURS = 4,
+    RTC_TIMER_DAYS = 5,
+};
 
 class PCF8583 {
     int address;
@@ -69,6 +92,9 @@ class PCF8583 {
     void set_time();
     int bcd_to_byte(byte bcd);
     byte int_to_bcd(int in);
+
+    void set_timer(enum PCF8583_timer type, unsigned char value);
+    void ack_timer(void);
 };
 
 

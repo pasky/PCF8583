@@ -14,13 +14,27 @@
 
 int correct_address = 0;
 PCF8583 p (0xA0);	
+volatile int ints = 0;
+
+void timer_handler(void) {
+  ints++;
+  // clear the interrupt signal
+  p.ack_timer();
+}
+
+
 void setup(void){
   Serial.begin(9600);
   Serial.print("booting...");
+
+  attachInterrupt(1, timer_handler, FALLING);
+
+  // get an interrupt every hour at the 20th minute (XXX: Except current hour,
+  // when you will get it in t+20minutes).
+  p.set_timer(RTC_TIMER_MINS, 20);
+
   Serial.println(" done");
-
 }
-
 
 
 void loop(void){
@@ -41,7 +55,7 @@ void loop(void){
 
   p.get_time();
   char time[50];
-  sprintf(time, "%02d/%02d/%02d %02d:%02d:%02d",
+  sprintf(time, "[%d] %02d/%02d/%02d %02d:%02d:%02d", ints,
 	  p.year, p.month, p.day, p.hour, p.minute, p.second);
   Serial.println(time);
 

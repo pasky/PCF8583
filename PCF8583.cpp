@@ -91,6 +91,39 @@ void PCF8583::set_time(){
 }
 
 
+void PCF8583::set_timer(enum PCF8583_timer type, unsigned char value){
+  /* Set up timer-based alarm. */
+  Wire.beginTransmission(address);
+  Wire.send(0x07);
+  Wire.send(0x00);
+  Wire.endTransmission();
+  Wire.beginTransmission(address);
+  Wire.send(0x0F);
+  Wire.send(((value / 10) << 4) | (value % 10));
+  Wire.endTransmission();
+
+  /* Set up timer/alarm settings. */
+  Wire.beginTransmission(address);
+  Wire.send(0x08);
+  Wire.send(type | (1<<6) | (1<<7));
+  Wire.endTransmission();
+
+  /* Turn on timer. */
+  Wire.beginTransmission(address);
+  Wire.send(0x00);
+  Wire.send(1<<2);
+  Wire.endTransmission();
+}
+
+void PCF8583::ack_timer(void){
+  /* Clear alarm,timer flags from the status word. */
+  Wire.beginTransmission(address);
+  Wire.send(0x00);
+  Wire.send(1<<2);
+  Wire.endTransmission();
+}
+
+
 int PCF8583::bcd_to_byte(byte bcd){
   return ((bcd >> 4) * 10) + (bcd & 0x0f);
 }
